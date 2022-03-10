@@ -1,0 +1,6 @@
+    Pentru mediul de transmitere cu porumbel avem:
+Latency -> 400Km / (80 Km / h) = 5 h = 5 * 3600 s = 18 000 secunde
+Bandwidth -> 16 Gb / 18 000 s = 8 000 000 000 bits / 18 000 s = 444444.44  bits / s 
+    Pentru Tubul Pneumatic
+Latency -> 200 m / (8 m / s) = 25 s 
+Bandwidth -> 2 Tb / 25 s = 2000000000000 bits / 25 s =  80000000000 bits / s 

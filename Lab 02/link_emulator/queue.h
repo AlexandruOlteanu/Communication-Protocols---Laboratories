@@ -4,7 +4,7 @@
 
 
 struct q {
-  void* crt;
+  void* crt; 
   struct q* prev;
 };
 

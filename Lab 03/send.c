@@ -13,6 +13,16 @@
 
 static inline uint8_t hamming_4to7(uint8_t c) {
 	// TODO 2: Implement hamming encoding for one nibble
+	bool d4 = ((c >> 0) & 1);
+	bool d3 = ((c >> 1) & 1);
+	bool d2 = ((c >> 2) & 1);
+	bool d1 = ((c >> 3) & 1);
+	bool p1 = (d1 ^ d2 ^ d4);
+	bool p2 = (d1 ^ d3 ^ d4);
+	bool p3 = (d2 ^ d3 ^ d4);
+	c = 0;
+	c = (p1 << 6) | (p2 << 5) | (d1 << 4) | (p3 << 3) | (d2 << 2) | (d3 << 1) | (d4);
+	return c;
 }
 
 /* For each 4 bits we add 3 redundancy bits. We split a byte intwo two */

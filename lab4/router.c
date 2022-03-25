@@ -17,7 +17,19 @@ int nei_table_len;
 */
 struct rtable_entry *get_best_route(uint16_t proto, struct in_addr dest_ip, struct in6_addr dest_ip6) {
 	/* TODO 1: Implement the function. We don't use dest_ip6 at this exercise */
-	return NULL;
+	struct rtable_entry *bc = NULL;
+	for(int i = 0; i < rtable_len; i++) {
+		if(rtable[i].proto == 4 && ((dest_ip.s_addr & rtable[i].netmask.s_addr) == rtable[i].network.s_addr)) {
+			if(bc == NULL) {
+				bc = &rtable[i];
+			} else if(ntohl(bc->netmask.s_addr) < ntohl(rtable[i].netmask.s_addr)) {
+				bc = &rtable[i];
+			} else if((bc->metric > rtable[i].metric) && (ntohl(bc->netmask.s_addr) == ntohl(rtable[i].netmask.s_addr))) {
+				bc = &rtable[i];
+			}
+		}
+	}
+	return bc;
 }
 
 /*
@@ -26,7 +38,13 @@ struct rtable_entry *get_best_route(uint16_t proto, struct in_addr dest_ip, stru
 */
 struct nei_entry *get_nei_entry(uint16_t proto, struct in_addr dest_ip, struct in6_addr dest_ip6) {
     /* TODO 2: Implement the function. We don't use dest_ip6 at this exercise. */
-    return NULL;
+	struct nei_entry *bc = NULL;
+	for (int i = 0; i < nei_table_len; ++i) {
+		if (nei_table[i].proto == 4 && (nei_table[i].ip.s_addr == dest_ip.s_addr)) {
+			bc = &nei_table[i];
+		}
+	}
+    return bc;
 }
 
 int main(int argc, char *argv[])
@@ -58,21 +76,48 @@ int main(int argc, char *argv[])
 
 		/* TODO 3: DONE: Check if this is an IPv4 or IPv6 packet and route accordingly. For now we will drop IPv6 packets and forward only IPv4.*/
 		/* We check if the packet is IPV4. Watch out for the usage of ntohs, why do we need it? Hint: Network Order */
-		if (ntohs(eth_hdr->ether_type) == ETHERTYPE_IP) {
+		if (ntohs(eth_hdr->ether_type) != ETHERTYPE_IP) {
+			continue;
+		}
+
 		/* TODO 4: Check the checksum as required by IPv4  */
 
+		if(ip_checksum(ip_hdr, sizeof(struct iphdr))) {
+			continue;
+		}
+			
 		/* TODO 5: Check TTL >= 1 */
-
+		if(ip_hdr->ttl <= 1) {
+			continue;
+		}
 		/* TODO 6: Find best matching route (using the function you wrote at TODO 1) */
+		struct in_addr dest_ip;
+		dest_ip.s_addr = ip_hdr->daddr;
+
+		struct in6_addr dest_ip6;
+		struct rtable_entry *route = get_best_route(4, dest_ip, dest_ip6);
+		if(route == NULL)
+			continue;
 
 		/* TODO 7: Find matching neighbour table entry (using the function you wrote at TODO 2)*/
+		struct nei_entry *vecin = get_nei_entry(4, route->nexthop, dest_ip6);
+		if(vecin == NULL) {
+			continue;
+		}
 
 		/* TODO 8: Update TTL and recalculate the checksum */
+		ip_hdr->ttl--;
+		ip_hdr->check = 0;
+		ip_hdr->check = ip_checksum(ip_hdr, sizeof(struct iphdr));
 
 		/* TODO 9: Update the Ethernet addresses */
+		get_interface_mac(route->interface, eth_hdr->ether_shost);
+		// mac dest copiem din tabela de vecini (vecin) -> dhost
+		memcpy(eth_hdr->ether_dhost, vecin->mac, 6);
 
 		/* TODO 10: Forward the pachet to best_route->interface */
-		}
+		send_packet(route->interface, &m);
+		
 
 	}
 }

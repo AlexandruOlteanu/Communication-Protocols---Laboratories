@@ -23,9 +23,13 @@ void recv_a_file(int sockfd, char *filename) {
 
   while (1) {
     /* TODO B.1: Receive a chunk */
-
+    int n = recvfrom(sockfd, buffer, sizeof(buffer), 0, NULL, NULL);
+    DIE(n < 0, "recieve");
+    if (n == 0) {
+      break;
+    }
     /* TODO B.2: Write the chunk to the file */
-
+    write(fd, buffer, n);
     /* TODO B.3: Exit the loop when the file was received entirely */
   }
 
@@ -94,7 +98,7 @@ int main(int argc, char *argv[]) {
      solving this TODO.
     */
 
-  // recv_a_file(sockfd, SAVED_FILENAME);
+  recv_a_file(sockfd, SAVED_FILENAME);
 
 
   // Close the socket

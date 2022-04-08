@@ -22,9 +22,15 @@ void send_file(int sockfd, struct sockaddr_in server_address, char *filename) {
   while (1) {
     char buffer[CHUNKSIZE];
     /* TODO B.1: Read a chuck from the file */
+    int rc = read(fd, &buffer, sizeof(buffer));
+    if (rc == 0) {
+      break;
+    }
+    DIE(rc < 0, "reading");
 
     /* TODO B.2: Send the current chuck to the server */
-
+    int n = sendto(sockfd, &buffer, rc, 0, (const struct sockaddr *)&server_address, sizeof(server_address));
+    DIE(n < 0, "sendto");
     /* TODO B.3: Make sure that the server can identify the end of the file */
   }
 }
@@ -95,7 +101,7 @@ int main(int argc, char *argv[]) {
       The line above should be comented when solving this TODO.
   */
 
-  // send_file(sockfd, servaddr, SENT_FILENAME);
+  send_file(sockfd, servaddr, SENT_FILENAME);
 
   // Close the socket
   close(sockfd);

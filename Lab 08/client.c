@@ -36,19 +36,45 @@ int main(int argc, char *argv[])
 	ret = connect(sockfd, (struct sockaddr*) &serv_addr, sizeof(serv_addr));
 	DIE(ret < 0, "connect");
 
+	
+	int fdmax = sockfd;
+
 	while (1) {
-  		// se citeste de la stdin
-		memset(buffer, 0, sizeof(buffer));
-		n = read(0, buffer, sizeof(buffer) - 1);
-		DIE(n < 0, "read");
+		
+		fd_set read_set;
+		FD_SET(STDIN_FILENO, &read_set);
+		FD_SET(sockfd, &read_set);
+		int rc = select(fdmax + 1, &read_set, NULL, NULL, NULL);
+		DIE(rc < 0, "select");
 
-		if (strncmp(buffer, "exit", 4) == 0) {
-			break;
+		if(FD_ISSET(STDIN_FILENO, &read_set)) {
+			// se citeste de la stdin
+			memset(buffer, 0, sizeof(buffer));
+			n = read(0, buffer, sizeof(buffer) - 1);
+			DIE(n < 0, "read");
+
+			if (strncmp(buffer, "exit", 4) == 0) {
+				break;
+			}
+		
+			// se trimite mesaj la server
+			n = send(sockfd, buffer, strlen(buffer), 0);
+			DIE(n < 0, "send");
+		} else {
+			// Socket
+			int rc = recv(sockfd, buffer, sizeof(buffer), 0);
+			DIE(rc < 0, "recv");
+			if(rc == 0) {
+				printf("S-a inchis conexiunea\n");
+				break;
+			}
+
+			int wc = write(STDOUT_FILENO, buffer, rc);
+			DIE(wc < 0, "write");
+
+
 		}
-
-		// se trimite mesaj la server
-		n = send(sockfd, buffer, strlen(buffer), 0);
-		DIE(n < 0, "send");
+  		
 	}
 
 	close(sockfd);

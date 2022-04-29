@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
 	while (1) {
 		tmp_fds = read_fds; 
-		
+		// {1,}
 		ret = select(fdmax + 1, &tmp_fds, NULL, NULL, NULL);
 		DIE(ret < 0, "select");
 
@@ -94,6 +94,13 @@ int main(int argc, char *argv[])
 						FD_CLR(i, &read_fds);
 					} else {
 						printf ("S-a primit de la clientul de pe socketul %d mesajul: %s\n", i, buffer);
+						// Business logic
+						int dest;
+						if(sscanf(buffer, "%d", &dest) == 1) {
+							send(dest, buffer, n, MSG_NOSIGNAL);
+						} else {
+							fprintf(stderr, "Nu am gasit dest\n");
+						}
 					}
 				}
 			}

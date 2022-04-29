@@ -39,7 +39,7 @@ static inline uint8_t hamming_7to4(uint8_t c) {
 	}
 	
 	
-	
+
 	c = 0;
 	c = (d1 << 3) | (d2 << 2) | (d3 << 1) | (d4);
 	// TODO 4: Implement error correction
